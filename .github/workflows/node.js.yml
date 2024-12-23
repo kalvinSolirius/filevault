@@ -21,6 +21,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: sonarsource/sonarqube-scan-action@v4
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
