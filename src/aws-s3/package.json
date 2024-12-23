@@ -4,13 +4,16 @@
   "description": "FileVault application using AWS S3",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "mocha",
+    "lint": "eslint"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",
     "@aws-sdk/lib-storage": "^3.717.0",
     "dotenv": "^8.6.0",
     "express": "^4.21.2",
+    "mocha": "^11.0.1",
     "multer": "^1.4.4"
   }
 }
