@@ -18,9 +18,9 @@ spec:
       - name: woc-app
         image: 615299732835.dkr.ecr.eu-west-2.amazonaws.com/woc:latest
         resources:
-        limits:
-          memory: 100Mi
+          limits:
+            memory: 100Mi
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        automountServiceAccountToken: false
+      automountServiceAccountToken: false
