@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: woc-app
+  namespace: default
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: woc-app
+  template:
+    metadata:
+      labels:
+        app: woc-app
+    spec:
+      containers:
+      - name: woc-app
+        image: 615299732835.dkr.ecr.eu-west-2.amazonaws.com/woc:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
