@@ -1,0 +1,14 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform/
+.vscode/
+.idea/
+*.tfplan
+.terraform.lock.hcl
+AWSCLIV2.pkg
