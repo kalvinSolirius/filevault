@@ -11,7 +11,6 @@ terraform {
   }
 }
 
-# VPC and Subnets
 resource "aws_vpc" "woc_vpc" {
   cidr_block = "10.0.0.0/16"
 }
@@ -20,6 +19,7 @@ resource "aws_subnet" "main" {
   cidr_block = "10.0.1.0/24"
   vpc_id     = aws_vpc.woc_vpc.id
   availability_zone = "eu-west-2a"
+  map_public_ip_on_launch = true
 }
 
 resource "aws_subnet" "sub" {
@@ -28,23 +28,49 @@ resource "aws_subnet" "sub" {
   availability_zone = "eu-west-2b"
 }
 
-# Internet Gateway
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.woc_vpc.id
 }
 
-# Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
   vpc = true
 }
 
-# Nat Gateway
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.sub.id
+  subnet_id     = aws_subnet.main.id
 }
 
-# IAM Role for EKS Cluster
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.woc_vpc.id
+}
+
+resource "aws_route" "public_route" {
+  route_table_id         = aws_route_table.public_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.gw.id
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.main.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.woc_vpc.id
+}
+
+resource "aws_route" "private_route" {
+  route_table_id         = aws_route_table.private_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
+}
+
+resource "aws_route_table_association" "private_assoc" {
+  subnet_id      = aws_subnet.sub.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
 resource "aws_iam_role" "eks_role" {
   name = "woc-eks-role"
 
@@ -72,7 +98,6 @@ resource "aws_iam_role_policy_attachment" "eks_administrator_access" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-# EKS Cluster
 resource "aws_eks_cluster" "woc_cluster" {
   name     = "woc-cluster"
   role_arn = aws_iam_role.eks_role.arn
@@ -124,7 +149,6 @@ resource "aws_iam_role_policy_attachment" "node_admin_access" {
   role       = aws_iam_role.node_role.name
 }
 
-# EKS Node Group
 resource "aws_eks_node_group" "woc_node_group" {
   cluster_name    = aws_eks_cluster.woc_cluster.name
   node_group_name = "woc-node-group"
@@ -153,10 +177,9 @@ resource "aws_eks_node_group" "woc_node_group" {
   ]
 }
 
-# ECR Repository
+# ECR Repository (optional)
 # resource "aws_ecr_repository" "woc_ecr" {
 #   name = "woc-repository"
-
 #   image_tag_mutability = "MUTABLE"
 #   image_scanning_configuration {
 #     scan_on_push = true
